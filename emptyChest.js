@@ -11,9 +11,22 @@ function emptyChest(){
 	p.interact();
 	Client.waitTick(4);
 	inv = Player.openInventory();
-  Client.waitTick(4);
+	Client.waitTick(4);
 	
-  for (var slot=0; slot<54; slot++) {
+	let slotCount = inv.getTotalSlots();
+	let chestSlots = 0;
+	//Chat.log(slotCount);
+	if (slotCount == 46) {
+		throw "Please open a chest";
+	} else if (slotCount == 90) {
+		chestSlots = 54; // Double Chest
+	} else if (slotCount == 41) {
+		chestSlots = 4; // Hopper
+	} else if (slotCount == 63) {
+		chestSlots = 27; // Barrel/Single Chest
+	}
+	
+	for (var slot=0; slot<54; slot++) {
 		let itemId = inv.getSlot(slot).getItemID()
 		let empty = (itemId == `minecraft:air`);
 		
@@ -29,9 +42,9 @@ function emptyChest(){
 				Client.waitTick();
 			}
 		}
-  }
+	}
     
-	Chat.log(slots)
+	//Chat.log(slots)
 	for (let i = 0; i < slots.length; i++) {
 		//Chat.log(slots[i]);
 		
