@@ -1,15 +1,10 @@
-    
-    /*Client.waitTick(2*3600*+0*60*+0);
-    KeyBind.key("key.keyboard.space",true);
-    Client.waitTick(5);
-    KeyBind.key("key.keyboard.space",false);
-*/
 // HuM4nB31nG's Crop Bot
 // Modified by Mokotowskie, MechanicalRift, x1025, BoatCat
 // Used for any of the major crop farms (potato, wheat, carrot, beet)
 // Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
+
 // YOU CAN CHANGE THIS BELOW:
-const food = "minecraft:potato"; // Set to whatever food item ID you are eating
+const food = ["minecraft:bread", "minecraft:baked_potato"]; // Set to whatever food item ID you are eating
 const farmDirection = "SWEEP"; // RIGHT/LEFT/SWEEP (starting from west -> RIGHT/SWEEP, starting from east -> LEFT)
 
 // Don't change anything below this line unless you know what you're doing.
@@ -251,7 +246,11 @@ function farmLineSouth()
 // Checks for player's food level.
 function eatFood() 
 {
-    getItemInHotbar(food);
+	for (var i = 0; i < food.length; i++) {
+		if (getItemInHotbar(food[i])) {
+			break; // Allows for multiple food items, tries to get each in the list
+		}
+	}
     KeyBind.keyBind("key.use", true);
 	let numAttempts = 0 // Added by BoatCat
     while (true) {
@@ -287,13 +286,14 @@ function getItemInHotbar(item)
         if (inv.getSlot(i + 36).getItemId() == item) {
             inv.setSelectedHotbarSlotIndex(i);
             selectedHotBarSlot = i;
-            break;
+			return true;
         }
         else if (i == 8) {
-            swapFromMain(item);
+            return swapFromMain(item);
         }
         Client.waitTick();
     }
+	return false;
 }
 
 // Function swaps an item from your main inventory
@@ -304,9 +304,10 @@ function swapFromMain(item)
     for (let i = 9; i < 36; i++) {
         if (inv.getSlot(i).getItemId() == item) {
             inv.swap(i, 36);
-            break;
+            return true;
         }
     }
+	return false;
 }
 
 // Removes non-farm items from your hotbar
