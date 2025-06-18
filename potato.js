@@ -4,7 +4,8 @@
 // Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
 
 // YOU CAN CHANGE THIS BELOW:
-const food = ["minecraft:bread", "minecraft:baked_potato"]; // Set to whatever food item ID you are eating
+const food = ["minecraft:bread", "minecraft:baked_potato"]; // Set to whatever food item IDs you are eating
+const tools = []; // List of all tool item IDs used in the farm
 const farmDirection = "SWEEP"; // RIGHT/LEFT/SWEEP (starting from west -> RIGHT/SWEEP, starting from east -> LEFT)
 
 // Don't change anything below this line unless you know what you're doing.
@@ -23,7 +24,7 @@ const zSouth = 8397;
 var endCheck = false
 
 // List of items that should be allowed by the script to stay in hotbar (prefers putting them in open inventory slots)
-var hotbarItems = [food];
+var hotbarItems = [];
 
 // The coords of the front of the chest.
 // Example: If a double chest is taking x coordinate -53 and z coordinates 140 and 141, and you are facing east,
@@ -310,6 +311,20 @@ function swapFromMain(item)
 	return false;
 }
 
+// Prepares the script with tool and food item IDs to prevent them from being automatically removed
+function prepareHotbar() {
+	for (let i = 0; i < (food.length); i++) {
+		if (!hotbarItems.includes(food[i])) {
+			hotbarItems.push(food[i]);
+		}
+	}
+	for (let i = 0; i < (tools.length); i++) {
+		if (!hotbarItems.includes(tools[i])) {
+			hotbarItems.push(tools[i]);
+		}
+	}
+}
+
 // Removes non-farm items from your hotbar
 // If this starts removing items you don't want removed, add their ids to hotbarItems at the top of the script
 function cleanHotbar()
@@ -430,6 +445,8 @@ function farmLines()
 {
     // Assumes you are already in position.
 	let oldLine = 0;
+	
+	prepareHotbar(); // Prepares the script with tool and food item IDs to prevent them from being automatically removed
 	
     while (true) 
     {
