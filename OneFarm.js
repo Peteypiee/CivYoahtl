@@ -1,5 +1,5 @@
 /*
-BoatCat's OneFarm system allows you to set one farm macro, one time. V1.1.0, 7/2/25
+BoatCat's OneFarm system allows you to set one farm macro, one time. V1.1.1, 7/2/25
 No more having to constantly switch your farm key, and no more keyboard clutter from having multiple farm keybinds!
 Fill in your own farms. Use the format provided by the example Yoahtl farms, with as precise corner/boundary values as possible
 If you would like to have farms added to the default script, please let me know via Discord, @Peteypiee
@@ -54,7 +54,7 @@ class farm {
 		Chat.say("/g " + group);
 		Client.waitTick(2);
 		let now = new Date();
-		Chat.say(group + "==" + this.material + " farm started: " + now.toLocaleString() + ".  Estimated time to regrow: " + this.regrowTime);
+		Chat.say(this.material + " farm started: " + now.toLocaleString() + ".  Estimated time to regrow: " + this.regrowTime);
 		Client.waitTick(2);
 		Chat.say("/local");
 	}
