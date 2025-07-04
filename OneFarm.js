@@ -1,16 +1,13 @@
 /*
-BoatCat's OneFarm system allows you to set one farm macro, one time. V1.1.1, 7/2/25
+BoatCat's OneFarm system allows you to set one farm macro, one time. V1.2.0, 7/4/25
 No more having to constantly switch your farm key, and no more keyboard clutter from having multiple farm keybinds!
 Fill in your own farms. Use the format provided by the example Yoahtl farms, with as precise corner/boundary values as possible
 If you would like to have farms added to the default script, please let me know via Discord, @Peteypiee
 */
 
-// VARIABLES
-const p = Player.getPlayer();
-
 // CLASSES
 class farm {
-	constructor(xEast, xWest, zNorth, zSouth, material="", regrowTime = "Unknown", woodFarm=false) {
+	constructor(xEast, xWest, zNorth, zSouth, material="", regrowTime = "Unknown", woodFarm=false, group="hue", privacy=false) {
 		this.xEast = xEast;
 		this.xWest = xWest;
 		this.zNorth = zNorth;
@@ -19,13 +16,16 @@ class farm {
 		this.woodFarm = woodFarm;
 		this.path = material + ".js";
 		this.regrowTime = regrowTime;
+		this.group = group;
+		this.privacy = privacy;
 	}
 	
 	setScript(path) {
 		this.path = path;
 	}
 	
-	inBounds(pl) {
+	inBounds() {
+		let pl = Player.getPlayer();
 		let x = pl.getPos().x;
 		let z = pl.getPos().z;
 		//Chat.log(this.zSouth + " " + this.zNorth + " " + this.xEast + " " + this.xWest);
@@ -33,6 +33,15 @@ class farm {
 			return true;
 		} else {
 			return false;
+		}
+	}
+	
+	runScript() {
+		if (this.inBounds()) {		
+			if (!this.privacy) {
+				this.announce();
+			}
+			JsMacros.runScript(this.path);	
 		}
 	}
 	
@@ -50,8 +59,8 @@ class farm {
 		return items;
 	}
 	
-	announce(group) {
-		Chat.say("/g " + group);
+	announce() {
+		Chat.say("/g " + this.group);
 		Client.waitTick(2);
 		let now = new Date();
 		Chat.say(this.material + " farm started: " + now.toLocaleString() + ".  Estimated time to regrow: " + this.regrowTime);
@@ -95,17 +104,14 @@ farms.push(melonPlace);
 function getCurrentFarm() {
 	var currentFarm = null;
 	for (let i = 0; i < farms.length; i++) {
-		if (farms[i].inBounds(p)) {
+		if (farms[i].inBounds()) {
 			currentFarm = farms[i];
 		}
 	}
 	if (currentFarm == null) {
 		throw "Not in a recognized farm. Find a farm or update your farm list";
 	}
-	
-	let group = "hue";
-	currentFarm.announce(group);
-	JsMacros.runScript(currentFarm.path);
+	currentFarm.runScript();
 }
 
 // CODE
