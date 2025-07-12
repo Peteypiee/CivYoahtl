@@ -1,5 +1,5 @@
 /*
-BoatCat's OneFarm system allows you to set one farm macro, one time. V1.2.2, 7/12/25
+BoatCat's OneFarm system allows you to set one farm macro, one time. V1.3.0, 7/12/25
 No more having to constantly switch your farm key, and no more keyboard clutter from having multiple farm keybinds!
 Fill in your own farms. Use the format provided by the example Yoahtl farms, with as precise corner/boundary values as possible
 If you would like to have farms added to the default script, please let me know via Discord, @Peteypiee
@@ -18,6 +18,13 @@ class farm {
 		this.regrowTime = regrowTime;
 		this.group = group;
 		this.privacy = privacy;
+		this.minY = -64;
+		this.maxY = 255;
+	}
+	
+	setY(min, max) {
+		this.minY = min;
+		this.maxY = max;
 	}
 	
 	setScript(path) {
@@ -27,9 +34,13 @@ class farm {
 	inBounds() {
 		let pl = Player.getPlayer();
 		let x = pl.getPos().x;
+		let y = pl.getPos().y;
 		let z = pl.getPos().z;
 		//Chat.log(this.zSouth + " " + this.zNorth + " " + this.xEast + " " + this.xWest);
-		if (z-5 <= this.zSouth && z+5 >= this.zNorth && x-5 <= this.xEast && x+5 >= this.xWest) {
+		if (z-2 <= this.zSouth && z+2 >= this.zNorth 
+			&& x-2 <= this.xEast && x+2 >= this.xWest
+			&& y-2 <= this.maxY && y+2 >= this.minY
+			) {
 			return true;
 		} else {
 			return false;
@@ -76,6 +87,7 @@ class farm {
 var farms = [];
 
 const wheatFarm = new farm(6384, 6225, -1426, -1303, material="wheat", regrowTime = "8 h");
+wheatFarm.setY(80,90);
 farms.push(wheatFarm);
 
 const carrotFarm = new farm(6607, 6416, -1520, -1377, material="carrot", regrowTime = "16 h"); // NOT ON GITHUB
@@ -96,7 +108,8 @@ sugarFarm.setScript("sugar.js"); // NOTE: sugar_cane vs. sugar.js
 farms.push(sugarFarm);
 
 const vineFarm = new farm(6320, 6239, -1390, -1348, material="vines");
-//farms.push(vineFarm); // COORDINATES OVERLAP WITH CENTER OF WHEAT FARM, UNCOMMENT IF YOU RUN THIS FARM
+vineFarm.setY(-7,18);
+farms.push(vineFarm);
 
 const spiderFarm = new farm(7840, 7839, -56, -55, material="spider_eye");
 spiderFarm.setScript("spider_farm.js");
