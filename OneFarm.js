@@ -1,5 +1,5 @@
 /*
-BoatCat's OneFarm system allows you to set one farm macro, one time. V1.2.1, 7/4/25
+BoatCat's OneFarm system allows you to set one farm macro, one time. V1.2.2, 7/12/25
 No more having to constantly switch your farm key, and no more keyboard clutter from having multiple farm keybinds!
 Fill in your own farms. Use the format provided by the example Yoahtl farms, with as precise corner/boundary values as possible
 If you would like to have farms added to the default script, please let me know via Discord, @Peteypiee
@@ -97,6 +97,10 @@ farms.push(sugarFarm);
 
 const vineFarm = new farm(6320, 6239, -1390, -1348, material="vines");
 //farms.push(vineFarm); // COORDINATES OVERLAP WITH CENTER OF WHEAT FARM, UNCOMMENT IF YOU RUN THIS FARM
+
+const spiderFarm = new farm(7840, 7839, -56, -55, material="spider_eye");
+spiderFarm.setScript("spider_farm.js");
+farms.push(spiderFarm);
 
 // TEMP MELON FARM PLANTING SCRIPT
 const melonPlace = new farm(8430, 8322, -1484, -1383, material="melon");
