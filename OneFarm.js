@@ -1,5 +1,5 @@
 /*
-BoatCat's OneFarm system allows you to set one farm macro, one time. V1.3.0, 7/12/25
+BoatCat's OneFarm system allows you to set one farm macro, one time. V1.3.1, 7/12/25
 No more having to constantly switch your farm key, and no more keyboard clutter from having multiple farm keybinds!
 Fill in your own farms. Use the format provided by the example Yoahtl farms, with as precise corner/boundary values as possible
 If you would like to have farms added to the default script, please let me know via Discord, @Peteypiee
@@ -102,6 +102,10 @@ farms.push(oakFarm);
 const jungleFarm = new farm(7581, 7441, -110, 75, material="jungle", regrowTime = "15 h", woodFarm=true); // NOT ON GITHUB
 jungleFarm.setScript("YoahtlJungle.js");
 farms.push(jungleFarm);
+
+const cocoaFarm = new farm(7753, 7661, 31, 95, material="cocoa_beans", regrowTime = "24 h");
+cocoaFarm.setScript("cocoafarm.js");
+farms.push(cocoaFarm);
 
 const sugarFarm = new farm(7726, 7632, -192, -97, material="sugar_cane", regrowTime = "12 h"); // NOT ON GITHUB
 sugarFarm.setScript("sugar.js"); // NOTE: sugar_cane vs. sugar.js
