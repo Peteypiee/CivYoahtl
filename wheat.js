@@ -1,10 +1,11 @@
-// HuM4nB31nG's Crop Bot (BoatCat V1.1.0, posted on Yoahtl Discord 6/5/25)
+// HuM4nB31nG's Crop Bot (BoatCat V2.0.0, 7/19/25)
 // Modified by Mokotowskie, MechanicalRift, x1025, BoatCat
 // Used for any of the major crop farms (potato, wheat, carrot, beet)
 // Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
 
 // YOU CAN CHANGE THIS BELOW:
-const food = "minecraft:bread"; // Set to whatever food item ID you are eating
+const food = ["minecraft:bread", "minecraft:baked_potato", "minecraft:potato"]; // Set to whatever food item IDs you are eating
+const tools = []; // List of all tool item IDs used in the farm
 const farmDirection = "SWEEP"; // RIGHT/LEFT/SWEEP (starting from west -> RIGHT/SWEEP, starting from east -> LEFT)
 
 // Don't change anything below this line unless you know what you're doing.
@@ -23,7 +24,7 @@ const zSouth = -1303;
 var endCheck = false
 
 // List of items that should be allowed by the script to stay in hotbar (prefers putting them in open inventory slots)
-var hotbarItems = [food];
+var hotbarItems = []; // Food and tools are autoloaded in prepareHotbar()
 
 // The coords of the front of the chest.
 // Example: If a double chest is taking x coordinate -53 and z coordinates 140 and 141, and you are facing east,
@@ -52,47 +53,47 @@ var waitTime = 0;
 
 //Checks if AutoJump is enabled, throws an error if it is.
 function getAutoJump() {
-    var gameOptions = Client.getGameOptions(); //We need to get the options class...
-    var gameOptionsRaw = gameOptions.getRaw(); //and then get the raw versions ...
-    return gameOptionsRaw.field_1848; //Return the value of autoJump according to Yarn mappings...
+	var gameOptions = Client.getGameOptions(); //We need to get the options class...
+	var gameOptionsRaw = gameOptions.getRaw(); //and then get the raw versions ...
+	return gameOptionsRaw.field_1848; //Return the value of autoJump according to Yarn mappings...
 }
 if (getAutoJump() == true) {
-    Chat.log("CANNOT START SCRIPT: Please Disable AutoJump before starting the script!");
-    throw "AutoJump is enabled, cannot continue.";
+	Chat.log("CANNOT START SCRIPT: Please Disable AutoJump before starting the script!");
+	throw "AutoJump is enabled, cannot continue.";
 }
 
 // Harvests the row and replants it.
 function farmLineNorth() 
 {
-    // Start at east, harvest to west, move north and click
-    
-    lookAt(180, 90);
-    
-    // Move north and harvest!
-    
-    Chat.log("Harvesting and replanting of row "+ line +" commenced!");
-    
-    KeyBind.keyBind("key.forward", true);
-    KeyBind.keyBind("key.use", true);
+	// Start at east, harvest to west, move north and click
 	
-    while (true)
-    {
-        if (p.getPos().z <= zNorth + 0.5) 
-        {
-            break;
-        }
-        else 
-        {
-            Client.waitTick();
-        }
-    }
-    
-    KeyBind.keyBind("key.forward", false);
-    KeyBind.keyBind("key.use", false);
-    
-    Client.waitTick();
-    
-    dumpCrops();
+	lookAt(180, 90);
+	
+	// Move north and harvest!
+	
+	Chat.log("Harvesting and replanting of row "+ line +" commenced!");
+	
+	KeyBind.keyBind("key.forward", true);
+	KeyBind.keyBind("key.use", true);
+	
+	while (true)
+	{
+		if (p.getPos().z <= zNorth + 0.5) 
+		{
+			break;
+		}
+		else 
+		{
+			Client.waitTick();
+		}
+	}
+	
+	KeyBind.keyBind("key.forward", false);
+	KeyBind.keyBind("key.use", false);
+	
+	Client.waitTick();
+	
+	dumpCrops();
 	
 	// For now, sweeping is only allowed left to right
 	if (farmDirection == "SWEEP") {
@@ -159,22 +160,22 @@ function farmLineNorth()
 // Harvests the row and replants it.
 function farmLineSouth()
 {
-    // Start at east, harvest to west, move south and click
-    
-    Client.waitTick(5);
-        
-    // Move south and farm.
-    KeyBind.keyBind("key.back", true);
-    KeyBind.keyBind("key.use", true);
-    
-    while (true) {
-        if (p.getPos().z >= zSouth + 0.5) {
-            break;
-        }
-    }
-    
-    KeyBind.keyBind("key.back", false);
-    KeyBind.keyBind("key.use", false);
+	// Start at east, harvest to west, move south and click
+	
+	Client.waitTick(5);
+		
+	// Move south and farm.
+	KeyBind.keyBind("key.back", true);
+	KeyBind.keyBind("key.use", true);
+	
+	while (true) {
+		if (p.getPos().z >= zSouth + 0.5) {
+			break;
+		}
+	}
+	
+	KeyBind.keyBind("key.back", false);
+	KeyBind.keyBind("key.use", false);
 	
 	if (farmDirection == "LEFT") {
 		if (line <= 1) {
@@ -196,12 +197,17 @@ function farmLineSouth()
 }
 
 // Checks for player's food level.
-function eatFood() {
-    getItemInHotbar(food);
+function eatFood() 
+{
+	for (var i = 0; i < food.length; i++) {
+		if (getItemInHotbar(food[i])) {
+			break; // Allows for multiple food items, tries to get each in the list
+		}
+	}
     KeyBind.keyBind("key.use", true);
 	let numAttempts = 0 // Added by BoatCat
     while (true) {
-        if (p.getFoodLevel() >= 20) {
+        if (p.getFoodLevel() >= 16) {
             break;
         }
         else {
@@ -212,7 +218,7 @@ function eatFood() {
 				Chat.log("You are out of food!");
 			}
 			if (numAttempts == 40) {
-				Chat.log("You have been AFK for too long, logging you out shortly!");
+				Chat.log("You have been AFK for too long, logging you out shortly!")
 			}
 			if (numAttempts == 41) {
 				endMotion();
@@ -227,30 +233,44 @@ function eatFood() {
 // If an item doesn't exist in the hotbar,
 // it will take it from the main inventory.
 function getItemInHotbar(item) {
-    const inv = Player.openInventory();
-    for (let i = 0; i < 9; i++) {
-        if (inv.getSlot(i + 36).getItemId() == item) {
-            inv.setSelectedHotbarSlotIndex(i);
-            selectedHotBarSlot = i;
-            break;
-        }
-        else if (i == 8) {
-            swapFromMain(item);
-        }
-        Client.waitTick();
-    }
+	const inv = Player.openInventory();
+	for (let i = 0; i < 9; i++) {
+		if (inv.getSlot(i + 36).getItemId() == item) {
+			inv.setSelectedHotbarSlotIndex(i);
+			selectedHotBarSlot = i;
+			break;
+		}
+		else if (i == 8) {
+			swapFromMain(item);
+		}
+		Client.waitTick();
+	}
 }
 
 // Function swaps an item from your main inventory
 // into the player's first Hotbar set.
 function swapFromMain(item) {
-    const inv = Player.openInventory();
-    for (let i = 9; i < 36; i++) {
-        if (inv.getSlot(i).getItemId() == item) {
-            inv.swap(i, 36);
-            break;
-        }
-    }
+	const inv = Player.openInventory();
+	for (let i = 9; i < 36; i++) {
+		if (inv.getSlot(i).getItemId() == item) {
+			inv.swap(i, 36);
+			break;
+		}
+	}
+}
+
+// Prepares the script with tool and food item IDs to prevent them from being automatically removed
+function prepareHotbar() {
+	for (let i = 0; i < (food.length); i++) {
+		if (!hotbarItems.includes(food[i])) {
+			hotbarItems.push(food[i]);
+		}
+	}
+	for (let i = 0; i < (tools.length); i++) {
+		if (!hotbarItems.includes(tools[i])) {
+			hotbarItems.push(tools[i]);
+		}
+	}
 }
 
 // Removes non-farm items from your hotbar
@@ -272,112 +292,114 @@ function cleanHotbar()
 			}
 		}
 	} catch (error) {
-	    Chat.log(error)
+		Chat.log(error)
 	}
 }
 
 function dumpCrops() {
-    lookAt(180, 0);
-    Client.waitTick(20);
-    const inv = Player.openInventory();
-    //dumps wheat seeds into the water storeage behind the chests
-    for (let i = 9; i < 45; i++) {
-        if (inv.getSlot(i).getItemId() == "minecraft:wheat_seeds") {
-            inv.click(i);
-            Client.waitTick();
-            inv.click(-999);
-            Client.waitTick();
-        }
-        else {
-            Client.waitTick();
-        }
-    }
-    Client.waitTick();
-    //mechanical's storage method from old obby script
-    //stores the wheat into the chest
-    lookAt(180, 45);
-    Client.waitTick(20);
-    KeyBind.key("key.mouse.right", true);
-    KeyBind.key("key.mouse.right", false);
-    Client.waitTick(60);
-    //YES IT REQURIES THE INVS CAUSE JSMACROS IS FUCKING RETARDED
-    const invs = Player.openInventory();
-    Client.waitTick(10);
-    for (let x = 54; x < 90; x++) {
-        Client.waitTick();
-        if (invs.getSlot(x).getItemId() == "minecraft:wheat") {
-            //Chat.log(x);
-            invs.quick(x);
-            Client.waitTick();
-        }
-        Client.waitTick();
-    }
-    inv.close();
-    Client.waitTick();
-    lookAt(180, 90);
-    Client.waitTick();
-	cleanHotbar(); // Added by BoatCat
+	lookAt(180, 0);
+	Client.waitTick(20);
+	const inv = Player.openInventory();
+	//dumps wheat seeds into the water storeage behind the chests
+	for (let i = 9; i < 45; i++) {
+		if (inv.getSlot(i).getItemId() == "minecraft:wheat_seeds") {
+			inv.click(i);
+			Client.waitTick();
+			inv.click(-999);
+			Client.waitTick();
+		}
+		else {
+			Client.waitTick();
+		}
+	}
+	Client.waitTick();
+	//mechanical's storage method from old obby script
+	//stores the wheat into the chest
+	lookAt(180, 45);
+	Client.waitTick(20);
+	KeyBind.key("key.mouse.right", true);
+	KeyBind.key("key.mouse.right", false);
+	Client.waitTick(60);
+	//YES IT REQURIES THE INVS CAUSE JSMACROS IS FUCKING RETARDED
+	const invs = Player.openInventory();
+	Client.waitTick(10);
+	for (let x = 54; x < 90; x++) {
+		Client.waitTick();
+		if (invs.getSlot(x).getItemId() == "minecraft:wheat") {
+			//Chat.log(x);
+			invs.quick(x);
+			Client.waitTick();
+		}
+		Client.waitTick();
+	}
+	inv.close();
+	Client.waitTick();
+	lookAt(180, 90);
+	Client.waitTick();
+	//cleanHotbar(); // Added by BoatCat
 }
 
 // Legal lookat function courtesy of mitw153
 function lookAt(yaw, pitch, frac = 0.1) {
-    
-    Chat.log("Start look!");
+	
+	Chat.log("Start look!");
 
-    const lerp = (a, b, f) => {
-        return Math.fround(a + f * (b - a));
-    };
+	const lerp = (a, b, f) => {
+		return Math.fround(a + f * (b - a));
+	};
 
-    const round = (n, d) => {
-        const pwr = Math.pow(10, d);
-        return Math.round((n + Number.EPSILON) * pwr) / pwr;
-    };
+	const round = (n, d) => {
+		const pwr = Math.pow(10, d);
+		return Math.round((n + Number.EPSILON) * pwr) / pwr;
+	};
 
-    yaw = round(yaw, 1);
-    pitch = round(pitch, 1);
+	yaw = round(yaw, 1);
+	pitch = round(pitch, 1);
 
-    // the "plyr" variable isn't needed if you have one defined already and change the instances of "plyr" here to that variable
-    const plyr = Player.getPlayer();
-    const plyrRaw = plyr.getRaw();
-    
-    let currYaw = plyr.getYaw();
-    let currPitch = plyr.getPitch();
+	// the "plyr" variable isn't needed if you have one defined already and change the instances of "plyr" here to that variable
+	const plyr = Player.getPlayer();
+	const plyrRaw = plyr.getRaw();
+	
+	let currYaw = plyr.getYaw();
+	let currPitch = plyr.getPitch();
 
-    const deltaYaw = yaw - currYaw;
-    currYaw = deltaYaw > 180 ? currYaw + 360 : deltaYaw < -180 ? currYaw - 360 : currYaw;
+	const deltaYaw = yaw - currYaw;
+	currYaw = deltaYaw > 180 ? currYaw + 360 : deltaYaw < -180 ? currYaw - 360 : currYaw;
 
-    while (round(currYaw, 1) !== yaw || round(currPitch, 1) !== pitch) {
-        currYaw = lerp(currYaw, yaw, frac);
-        currPitch = lerp(currPitch, pitch, frac);
-        
-        // support forge and fabric, raw methods to set yaw and pitch
-        try {
-            plyrRaw.method_36456(currYaw);
-            plyrRaw.method_36457(currPitch);
-        } catch {
-            plyrRaw.m_146922_(currYaw);
-            plyrRaw.m_146926_(currPitch);
-        }
-        
-        Time.sleep(10);
-    }
-    
-    //Chat.log("Look completed!");
+	while (round(currYaw, 1) !== yaw || round(currPitch, 1) !== pitch) {
+		currYaw = lerp(currYaw, yaw, frac);
+		currPitch = lerp(currPitch, pitch, frac);
+		
+		// support forge and fabric, raw methods to set yaw and pitch
+		try {
+			plyrRaw.method_36456(currYaw);
+			plyrRaw.method_36457(currPitch);
+		} catch {
+			plyrRaw.m_146922_(currYaw);
+			plyrRaw.m_146926_(currPitch);
+		}
+		
+		Time.sleep(10);
+	}
+	
+	//Chat.log("Look completed!");
 }
 
 // Main function
 function farmLines() 
 {
-    // Assumes you are already in position.
+	// Assumes you are already in position.
 	let oldLine = 0;
 	
-    while (true) 
-    {
+	prepareHotbar();
+	
+	while (true) 
+	{
 		// Eat
 		eatFood();
 		
 		oldLine = line;
-        farmLineNorth();
+		farmLineNorth();
 		
 		if (endCheck) {
 			break;
@@ -391,40 +413,40 @@ function farmLines()
 		
 		oldLine = line; 
 		farmLineSouth()
-        Chat.log("Row "+ oldLine +" finished! Moving on to row "+ line +"!");
+		Chat.log("Row "+ oldLine +" finished! Moving on to row "+ line +"!");
 
 		if (endCheck){
 			break;
 		}
 
-        Client.waitTick();
+		Client.waitTick();
 	}
 }
 
 
 function end() {
-    Chat.log("Job is finished.");
-    // on even lines, move back to the start
-    // because script fails to do so
-    if (line % 2 == 0) {
-        Chat.log("Moving back to start.");
-        // move back to start
-        KeyBind.keyBind("key.forward", true);
-        // wait until we are back at the start
-        while (true) {
-            if (p.getPos().z <= zNorth + 0.5) {
-                break;
-            }
-            else {
-                Client.waitTick();
-            }
-        }
-        KeyBind.keyBind("key.forward", false);
-        Client.waitTick();
-        dumpCrops();
-    }
-    Chat.log("Now logging out.");
-    Chat.say("/logout");
+	Chat.log("Job is finished.");
+	// on even lines, move back to the start
+	// because script fails to do so
+	if (line % 2 == 0) {
+		Chat.log("Moving back to start.");
+		// move back to start
+		KeyBind.keyBind("key.forward", true);
+		// wait until we are back at the start
+		while (true) {
+			if (p.getPos().z <= zNorth + 0.5) {
+				break;
+			}
+			else {
+				Client.waitTick();
+			}
+		}
+		KeyBind.keyBind("key.forward", false);
+		Client.waitTick();
+		dumpCrops();
+	}
+	Chat.log("Now logging out.");
+	Chat.say("/logout");
 }
 
 // Added by BoatCat
@@ -434,13 +456,13 @@ function endMotion()
 	
 	KeyBind.keyBind("key.forward", true);
 	
-    while (true)
-    {
-        if (p.getPos().z <= zNorth + 0.5) 
-        {
+	while (true)
+	{
+		if (p.getPos().z <= zNorth + 0.5) 
+		{
 			break;
 		}
-    }
+	}
 	
 	lookAt(270, 0);
 	while (true)
@@ -451,7 +473,7 @@ function endMotion()
 	}
 
 	KeyBind.keyBind("key.sprint", false);
-    KeyBind.keyBind("key.forward", false);
+	KeyBind.keyBind("key.forward", false);
 	KeyBind.keyBind("key.attack", false);
 	end();
 	Client.waitTick(220);
@@ -499,7 +521,5 @@ function moveRight(n = 1)
 	KeyBind.keyBind("key.right", false);
 }
 
-
 // Execution
 farmLines();
-
