@@ -1,4 +1,4 @@
-// HuM4nB31nG's Crop Bot (BoatCat V1.0.0, posted on Yoahtl Discord 6/4/25)
+// HuM4nB31nG's Crop Bot (BoatCat V1.1.0, posted on Yoahtl Discord 6/5/25)
 // Modified by Mokotowskie, MechanicalRift, x1025, BoatCat
 // Used for any of the major crop farms (potato, wheat, carrot, beet)
 // Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
@@ -100,7 +100,7 @@ function farmLineNorth()
 			endCheck = true;
 			end();
 		} else {
-			if (line < 2) {
+			if (line <= 2) {
 				// Do nothing
 				Client.waitTick();
 			} else if (line >= (xEast - xWest - 1)) {
@@ -502,3 +502,4 @@ function moveRight(n = 1)
 
 // Execution
 farmLines();
+
