@@ -1,5 +1,5 @@
 /*
-Yoahtl Cocoa Bean Farm - MechanicalRift, BoatCat - V2.0.0
+Yoahtl Cocoa Bean Farm - MechanicalRift, BoatCat - V2.1.0
 */
 const p = Player.getPlayer();
 
@@ -29,7 +29,7 @@ var hotbarItems = []; // FOOD AND TOOLS ARE ADDED AUTOMATCALLY, ADD SPECIAL ITEM
 // FUNCTIONS
 function farmRow() 
 {
-	Chat.log(getCurrentFloor());
+	Chat.log("Farming floor: " + getCurrentFloor());
 	eatFood();
 	KeyBind.keyBind("key.use", true);
 	Client.waitTick(2);
@@ -53,10 +53,9 @@ function farmRow()
 
 function farmSection()
 {
-	Chat.log(getCurrentSection());
-	for (let floor = 0; floor <= 14; floor++) { // ASSUMES STARTING ON FIRST FLOOR
-		Chat.log("Starting floor:".concat(" ", floor + 1));
-	  
+	let currentFloor = getCurrentFloor();
+	Chat.log("Farming section: " + getCurrentSection());
+	for (let floor = currentFloor; floor <= 14; floor++) {
 		if (floor != 0) {
 			Player.addInput(jump);
 			Client.waitTick(5);
@@ -75,6 +74,14 @@ function farmSection()
 				Player.addInput(sneak);
 				Client.waitTick(5);
 			}
+		}
+		
+		let lodestoneRows = [1];
+		if (lodestoneRows.includes(getCurrentSection())) { // FIX FOR HAVING LODESTONE FOR COLLECTION AREA. ADD OTHER ROWS WITH LODESTONES HERE
+			Player.addInput(sneak);
+			Client.waitTick(5);
+			Player.addInput(jump);
+			Client.waitTick(5);
 		}
 	}
 }
@@ -108,14 +115,14 @@ function getCurrentSection() {
 	let relativeZ = p.getPos().z - zNorth;
 	let dist = zSouth - zNorth;
 	let section = Math.round((relativeZ / dist) * numRows) + 1;
-	return ("Farming section " + section);
+	return (section);
 }
 
 function getCurrentFloor() {
 	let relativeY = p.getPos().y - yBase;
 	let distBetweenFloors = 6;
 	let floor = Math.round(relativeY / 6);
-	return ("Farming floor " + floor);
+	return (floor);
 }
 
 function dumpCrops(currentFloor)
