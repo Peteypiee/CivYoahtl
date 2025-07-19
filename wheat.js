@@ -1,20 +1,30 @@
-// HuM4nB31nG's Crop Bot
-// Modified by Mokotowskie, MechanicalRift, x1025
+// HuM4nB31nG's Crop Bot (BoatCat V1.0.0, posted on Yoahtl Discord 6/4/25)
+// Modified by Mokotowskie, MechanicalRift, x1025, BoatCat
 // Used for any of the major crop farms (potato, wheat, carrot, beet)
 // Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
+
 // YOU CAN CHANGE THIS BELOW:
 const food = "minecraft:bread"; // Set to whatever food item ID you are eating
+const farmDirection = "SWEEP"; // RIGHT/LEFT/SWEEP (starting from west -> RIGHT/SWEEP, starting from east -> LEFT)
 
 // Don't change anything below this line unless you know what you're doing.
 // ---------------------------------------------------------------------------------------
-// NOTE - PLEASE READ: This script was specifically made for the Yoahtl beetfarm near Himmelfalke.
+// NOTE - PLEASE READ: This script was specifically made for the Yoahtl wheatfarm near Homeland.
 // Make sure that you have a rectangular farm, you have the food you want to eat in the hotbar,
 // And that you have room in your hotbar for whatever item you need to replant.
-// Boundaries of the beetroot farm.
+
+// Boundaries of the farm.
 const xEast = 6384;
 const xWest = 6225;
 const zNorth = -1426;
 const zSouth = -1303;
+
+// Boolean variable to end the script
+var endCheck = false
+
+// List of items that should be allowed by the script to stay in hotbar (prefers putting them in open inventory slots)
+var hotbarItems = [food];
+
 // The coords of the front of the chest.
 // Example: If a double chest is taking x coordinate -53 and z coordinates 140 and 141, and you are facing east,
 // you set the x coordinate to be -54 and the z coordinate to be 140.5.
@@ -23,17 +33,23 @@ const zSouth = -1303;
 //const zChest = 6317;
 // NOTE: The crop and food constants have been modified such that they now take in the item's ID.
 // Website for list of unit IDs in minecraft: https://minecraftitemids.com/
+
 const p = Player.getPlayer();
 var selectedHotBarSlot = 0;
+
 // Sets line according to your x position - addition by x1025
 var line = Math.floor(p.getPos().x) - xWest;
+
 // Minimize waste by being as close to the left edge of the block
 var x = xWest + line + 0.0625;
 Chat.log("Line Start: " + line)
+
 // The amount of time that is added everytime you go back to the chest,
 // so the bot can wait and render the chunk the chest is located in.
+
 var minute = 0;
 var waitTime = 0;
+
 //Checks if AutoJump is enabled, throws an error if it is.
 function getAutoJump() {
     var gameOptions = Client.getGameOptions(); //We need to get the options class...
@@ -44,62 +60,169 @@ if (getAutoJump() == true) {
     Chat.log("CANNOT START SCRIPT: Please Disable AutoJump before starting the script!");
     throw "AutoJump is enabled, cannot continue.";
 }
+
 // Harvests the row and replants it.
-function farmLine() {
-    // Start at west, harvest to east, move back and click
+function farmLineNorth() 
+{
+    // Start at east, harvest to west, move north and click
+    
     lookAt(180, 90);
+    
     // Move north and harvest!
-    Chat.log("Harvesting and replanting of row " + line + " commenced!");
+    
+    Chat.log("Harvesting and replanting of row "+ line +" commenced!");
+    
     KeyBind.keyBind("key.forward", true);
     KeyBind.keyBind("key.use", true);
-    while (true) {
-        if (p.getPos().z <= zNorth + 0.5) {
+	
+    while (true)
+    {
+        if (p.getPos().z <= zNorth + 0.5) 
+        {
             break;
         }
-        else {
+        else 
+        {
             Client.waitTick();
         }
     }
+    
     KeyBind.keyBind("key.forward", false);
     KeyBind.keyBind("key.use", false);
+    
     Client.waitTick();
+    
     dumpCrops();
-    Client.waitTick();
-    var newLine = line + 1;
-    Chat.log("Row " + line + " finished! Moving on to row " + newLine + "!");
-    KeyBind.keyBind("key.right", true);
-    while (true) {
-        if (p.getPos().x >= xWest + line + 1) {
-            break;
-        }
-    }
-    KeyBind.keyBind("key.right", false);
+	
+	// For now, sweeping is only allowed left to right
+	if (farmDirection == "SWEEP") {
+		if (line >= xEast - xWest) {
+			endCheck = true;
+			end();
+		} else {
+			if (line < 2) {
+				// Do nothing
+				Client.waitTick();
+			} else if (line >= (xEast - xWest - 1)) {
+				moveLeft(1)
+				x += 1
+				line += 1
+			} else {
+				KeyBind.keyBind("key.use", true); // Farms crops by chest that may have been missed
+				moveLeft(2); // Previously 2.5 (1.5 above)
+				x += 2;
+				line += 2; // Re-adds to x and line cause moveLeft auto-decrements and I don't want that here
+				KeyBind.keyBind("key.use", false);
+			}
+			
+			Client.waitTick();
+			
+			lookAt(0, 0);
+			KeyBind.keyBind("key.sprint", true);
+			KeyBind.keyBind("key.forward", true);
+			KeyBind.keyBind("key.use", true); // Allows for eating item in offhand while running
+			
+			while (true) {
+				if (p.getPos().z >= zSouth) {
+					break;
+				}
+			}
+			KeyBind.keyBind("key.sprint", false);
+			KeyBind.keyBind("key.forward", false);
+			KeyBind.keyBind("key.use", false);
+			
+			Client.waitTick();
+			lookAt(180, 0);
+			Client.waitTick();
+			
+			moveRight(); // Works because x and line are still at old locations
+		}
+	} else if (farmDirection == "LEFT") {
+		if (line <= 1) {
+			endCheck = true;
+			end();
+		} else {
+			moveLeft();
+		}
+	} else if (farmDirection == "RIGHT") {
+		if (line >= xEast - xWest) {
+			endCheck = true;
+			end();
+		} else {
+			moveRight();
+		}
+	} else {
+		Chat.log("Invalid farmDirection");
+	}
+}
+
+// Harvests the row and replants it.
+function farmLineSouth()
+{
+    // Start at east, harvest to west, move south and click
+    
     Client.waitTick(5);
-    // Move east and farm.
+        
+    // Move south and farm.
     KeyBind.keyBind("key.back", true);
     KeyBind.keyBind("key.use", true);
+    
     while (true) {
         if (p.getPos().z >= zSouth + 0.5) {
             break;
         }
     }
+    
     KeyBind.keyBind("key.back", false);
     KeyBind.keyBind("key.use", false);
+	
+	if (farmDirection == "LEFT") {
+		if (line <= 1) {
+			endCheck = true;
+			end();
+		} else {
+			moveLeft();
+		}
+	} else if (farmDirection == "RIGHT") {
+		if (line >= xEast - xWest) {
+			endCheck = true;
+			end();
+		} else {
+			moveRight();
+		}
+	} else {
+		Chat.log("Invalid farmDirection");
+	}
 }
+
 // Checks for player's food level.
 function eatFood() {
     getItemInHotbar(food);
     KeyBind.keyBind("key.use", true);
+	let numAttempts = 0 // Added by BoatCat
     while (true) {
         if (p.getFoodLevel() >= 20) {
             break;
         }
         else {
             Client.waitTick(20);
+			
+			numAttempts += 1;
+			if (numAttempts > 8 && numAttempts % 2 == 0) {
+				Chat.log("You are out of food!");
+			}
+			if (numAttempts == 40) {
+				Chat.log("You have been AFK for too long, logging you out shortly!");
+			}
+			if (numAttempts == 41) {
+				endMotion();
+				break;
+			}
         }
     }
     KeyBind.keyBind("key.use", false);
 }
+
 // Select's an item from the hotbar.
 // If an item doesn't exist in the hotbar,
 // it will take it from the main inventory.
@@ -117,6 +240,7 @@ function getItemInHotbar(item) {
         Client.waitTick();
     }
 }
+
 // Function swaps an item from your main inventory
 // into the player's first Hotbar set.
 function swapFromMain(item) {
@@ -128,6 +252,30 @@ function swapFromMain(item) {
         }
     }
 }
+
+// Removes non-farm items from your hotbar
+// If this starts removing items you don't want removed, add their ids to hotbarItems at the top of the script
+function cleanHotbar()
+{
+	try {
+		const inv = Player.openInventory();
+		for (let i = 0; i < 9; i++) {
+			if (!hotbarItems.includes(inv.getSlot(i+36).getItemId())) {
+				for (let j = 9; j <= 35; j++) {
+					if (inv.getSlot(j).isEmpty()) {
+						inv.click(i+36);
+						Client.waitTick(2);
+						inv.click(j);
+						Client.waitTick(2);
+					}
+				}
+			}
+		}
+	} catch (error) {
+	    Chat.log(error)
+	}
+}
+
 function dumpCrops() {
     lookAt(180, 0);
     Client.waitTick(20);
@@ -168,7 +316,9 @@ function dumpCrops() {
     Client.waitTick();
     lookAt(180, 90);
     Client.waitTick();
+	cleanHotbar(); // Added by BoatCat
 }
+
 // Legal lookat function courtesy of mitw153
 function lookAt(yaw, pitch, frac = 0.1) {
     
@@ -214,39 +364,44 @@ function lookAt(yaw, pitch, frac = 0.1) {
     
     //Chat.log("Look completed!");
 }
-// Main function
-function farmLines() {
-    // Assumes you are already in position.
-    while (true) {
-        // Eat
-        eatFood();
-        // Farm line
-        farmLine();
-        // Move one
-        x += 2;
-        var newLine = line + 2;
-        if (newLine >= 160) {
-            KeyBind.keyBind("key.forward", false);
-            KeyBind.keyBind("key.attack", false);
-            end();
-            Client.waitTick(220);
-        }
 
-        Chat.log("Row " + (line + 1) + " finished! Moving on to row " + newLine + "!");
-        KeyBind.keyBind("key.right", true);
-        line = line + 2;
-        while (true) {
-            if (p.getPos().x >= x) {
-                break;
-            }
-            else {
-                Client.waitTick();
-            }
-        }
-        KeyBind.keyBind("key.right", false);
+// Main function
+function farmLines() 
+{
+    // Assumes you are already in position.
+	let oldLine = 0;
+	
+    while (true) 
+    {
+		// Eat
+		eatFood();
+		
+		oldLine = line;
+        farmLineNorth();
+		
+		if (endCheck) {
+			break;
+		}
+		
+		Chat.log("Row "+ oldLine +" finished! Moving on to row "+ line +"!");
+		
+		if (farmDirection == "SWEEP") {
+			continue; // Skips southbound farm as northbound w/ sweep brings player back to south
+		}
+		
+		oldLine = line; 
+		farmLineSouth()
+        Chat.log("Row "+ oldLine +" finished! Moving on to row "+ line +"!");
+
+		if (endCheck){
+			break;
+		}
+
         Client.waitTick();
-    }
+	}
 }
+
+
 function end() {
     Chat.log("Job is finished.");
     // on even lines, move back to the start
@@ -271,5 +426,79 @@ function end() {
     Chat.log("Now logging out.");
     Chat.say("/logout");
 }
+
+// Added by BoatCat
+function endMotion() 
+{
+	lookAt(180, 0);
+	
+	KeyBind.keyBind("key.forward", true);
+	
+    while (true)
+    {
+        if (p.getPos().z <= zNorth + 0.5) 
+        {
+			break;
+		}
+    }
+	
+	lookAt(270, 0);
+	while (true)
+	{
+		if (p.getPos().x >= xEast - 0.5) {
+			break;
+		}
+	}
+
+	KeyBind.keyBind("key.sprint", false);
+    KeyBind.keyBind("key.forward", false);
+	KeyBind.keyBind("key.attack", false);
+	end();
+	Client.waitTick(220);
+}
+
+function moveLeft(n = 1) 
+{
+	x -= n;
+	line -= n;
+	KeyBind.keyBind("key.left", true);
+		
+	while (true) 
+	{
+		if (p.getPos().x <= x) 
+		{
+		   break;
+		} 
+		else 
+		{
+		   Client.waitTick()
+		}
+	}
+	
+	KeyBind.keyBind("key.left", false);
+}
+
+function moveRight(n = 1) 
+{
+	x += n;
+	line += n;
+	KeyBind.keyBind("key.right", true);
+		
+	while (true) 
+	{
+		if (p.getPos().x >= x) 
+		{
+		   break;
+		} 
+		else 
+		{
+		   Client.waitTick()
+		}
+	}
+	
+	KeyBind.keyBind("key.right", false);
+}
+
+
 // Execution
 farmLines();
