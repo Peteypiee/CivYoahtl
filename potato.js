@@ -1,12 +1,15 @@
-// HuM4nB31nG's Crop Bot
+// HuM4nB31nG's Crop Bot (BoatCat V2.0.0, 7/19/25)
 // Modified by Mokotowskie, MechanicalRift, x1025, BoatCat
 // Used for any of the major crop farms (potato, wheat, carrot, beet)
 // Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
 
 // YOU CAN CHANGE THIS BELOW:
-const food = ["minecraft:bread", "minecraft:baked_potato"]; // Set to whatever food item IDs you are eating
+const food = ["minecraft:bread", "minecraft:baked_potato", "minecraft:potato"]; // Set to whatever food item IDs you are eating
 const tools = []; // List of all tool item IDs used in the farm
 const farmDirection = "SWEEP"; // RIGHT/LEFT/SWEEP (starting from west -> RIGHT/SWEEP, starting from east -> LEFT)
+
+// List of items that should be allowed by the script to stay in hotbar (prefers putting them in open inventory slots)
+var hotbarItems = []; // FOOD AND TOOLS ARE ADDED AUTOMATCALLY, ADD SPECIAL ITEMS HERE
 
 // Don't change anything below this line unless you know what you're doing.
 // ---------------------------------------------------------------------------------------
@@ -22,9 +25,6 @@ const zSouth = 8397;
 
 // Boolean variable to end the script
 var endCheck = false
-
-// List of items that should be allowed by the script to stay in hotbar (prefers putting them in open inventory slots)
-var hotbarItems = [];
 
 // The coords of the front of the chest.
 // Example: If a double chest is taking x coordinate -53 and z coordinates 140 and 141, and you are facing east,
@@ -255,7 +255,7 @@ function eatFood()
     KeyBind.keyBind("key.use", true);
 	let numAttempts = 0 // Added by BoatCat
     while (true) {
-        if (p.getFoodLevel() >= 20) {
+        if (p.getFoodLevel() >= 16) {
             break;
         }
         else {
@@ -377,14 +377,20 @@ function dumpCrops()
     //YES IT REQURIES THE INVS CAUSE JSMACROS IS FUCKING RETARDED
     const invs = Player.openInventory();
     Client.waitTick(10);
+	let firstStack = true;
     for (let x = 54; x < 90; x++) {
         Client.waitTick();
         if (invs.getSlot(x).getItemId() == "minecraft:potato") {
+			if (firstStack) {
+				Client.waitTick();
+				firstStack = false; // DONE SPECIFICALLY FOR POTATO FARM TO ALLOW FOR EATING POTATOES.
+				continue; 			// DO NOT INCLUDE IF CROP IS NOT EATABLE
+			}
             //Chat.log(x);
             invs.quick(x);
-            Client.waitTick();
+			Client.waitTick();
         }
-        Client.waitTick();
+		Client.waitTick();
     }
     inv.close();
     Client.waitTick();
