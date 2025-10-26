@@ -1,12 +1,14 @@
-// HuM4nB31nG's Crop Bot (BoatCat V2.0.0, 7/19/25)
+// HuM4nB31nG's Crop Bot (BoatCat V2.1.0, 7/19/25)
 // Modified by Mokotowskie, MechanicalRift, x1025, BoatCat
 // Used for any of the major crop farms (potato, wheat, carrot, beet)
-// Modified to be able to shift-click items into chests and auto-resume harvesting/replanting.
+// Added a toggleable sprint mode and improved sweep toggle. Also updated basic food list
 
 // YOU CAN CHANGE THIS BELOW:
-const food = ["minecraft:bread", "minecraft:baked_potato", "minecraft:potato"]; // Set to whatever food item IDs you are eating
+const food = ["minecraft:bread", "minecraft:baked_potato", "minecraft:potato", "minecraft:carrot", "minecraft:cooked_porkchop"]; // Set to whatever food item IDs you are eating
 const tools = []; // List of all tool item IDs used in the farm
-const farmDirection = "SWEEP"; // RIGHT/LEFT/SWEEP (starting from west -> RIGHT/SWEEP, starting from east -> LEFT)
+const farmDirection = "RIGHT"; // RIGHT/LEFT (starting from west -> RIGHT, starting from east -> LEFT)
+const sweepMode = true; // SWEEP MODE ONLY WORKS FOR FARMING EAST->WEST
+const sprintSweep = true; // SWEEP MODE SPRINT TOGGLE, TURN OFF TO SAVE FOOD
 
 // Don't change anything below this line unless you know what you're doing.
 // ---------------------------------------------------------------------------------------
@@ -96,7 +98,7 @@ function farmLineNorth()
 	dumpCrops();
 	
 	// For now, sweeping is only allowed left to right
-	if (farmDirection == "SWEEP") {
+	if (sweepMode) {
 		if (line >= xEast - xWest) {
 			endCheck = true;
 			end();
@@ -119,7 +121,9 @@ function farmLineNorth()
 			Client.waitTick();
 			
 			lookAt(0, 0);
-			KeyBind.keyBind("key.sprint", true);
+			if (sprintSweep) {
+				KeyBind.keyBind("key.sprint", true);
+			}
 			KeyBind.keyBind("key.forward", true);
 			KeyBind.keyBind("key.use", true); // Allows for eating item in offhand while running
 			
