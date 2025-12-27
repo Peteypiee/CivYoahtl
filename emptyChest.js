@@ -25,7 +25,7 @@ function emptyChest(){
     } else if (slotCount == 63) {
         chestSlots = 27; // Barrel/Single Chest
     } else if (slotCount == 45) {
-        chestSlots = 9;  // Dropper/Hopper
+        chestSlots = 9;  // Dropper/Dispenser
     }
     
     for (var slot=0; slot<chestSlots; slot++) {
